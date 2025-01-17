@@ -229,7 +229,9 @@ if [ $CLONE_ENTIRE_GIT -ne 0 ]; then
     )
 else
     cp -ra $ROOT_DIR/bin $CLONE_ROOT/
+    cp -ra $ROOT_DIR/data $CLONE_ROOT/
 fi
+cp -ra $ROOT_DIR/user-hooks.d $CLONE_ROOT/
 
 echo "Copying 'krita' source directory..."
 mkdir $CLONE_ROOT/persistent
