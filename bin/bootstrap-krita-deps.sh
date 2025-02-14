@@ -64,7 +64,7 @@ if [ ! -d $WORK_DIR/_install ]; then
         cd $WORK_DIR
 
         if [ ! -d ./krita-deps-management ]; then
-            git clone https://invent.kde.org/dkazakov/krita-deps-management.git $BRANCH_ARG
+            git clone https://invent.kde.org/packaging/krita-deps-management.git $BRANCH_ARG
         else
             (
                 cd ./krita-deps-management
@@ -75,7 +75,7 @@ if [ ! -d $WORK_DIR/_install ]; then
             )
         fi
         if [ ! -d ./krita-deps-management/ci-utilities ]; then
-            git clone https://invent.kde.org/dkazakov/ci-utilities.git krita-deps-management/ci-utilities
+            git clone https://invent.kde.org/packaging/krita-ci-utilities.git krita-deps-management/ci-utilities
         else
             (
                 cd ./krita-deps-management/ci-utilities
