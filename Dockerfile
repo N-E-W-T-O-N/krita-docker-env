@@ -23,7 +23,9 @@ ENV USRHOME=/home/appimage
 
 RUN chsh -s /bin/bash appimage
 RUN groupmod -g ${APPIMAGE_GID} appimage
-RUN usermod -u ${APPIMAGE_UID} -g ${APPIMAGE_GID} appimage
+RUN groupmod -g ${APPIMAGE_GID} appimage
+RUN groupadd -g ${RENDER_GID} render
+RUN usermod -u ${APPIMAGE_UID} -g ${APPIMAGE_GID} -a -G render appimage
 
 RUN locale-gen en_US.UTF-8
 

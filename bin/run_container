@@ -63,6 +63,11 @@ if [[ -e /dev/kvm ]]; then
    KVM_OPTS+="--device /dev/kvm"
 fi
 
+WAYLAND_OPTS=
+if [[ -e $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY ]]; then
+   WAYLAND_OPTS+="-e XDG_RUNTIME_DIR=/tmp/xdg-runtime/ -e WAYLAND_DISPLAY=$WAYLAND_DISPLAY -v $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY:/tmp/xdg-runtime/$WAYLAND_DISPLAY"
+fi
+
 tryCreatePulseaudioSocket
 tryCreateXAuthCookieFile
 runUserInitializationHooks
@@ -75,6 +80,7 @@ ${DOCKER_BINARY} run -P -t -d \
   -v /etc/localtime:/etc/localtime:ro \
   -e DISPLAY \
   -e XAUTHORITY=/tmp/krita-docker-xauth \
+  $WAYLAND_OPTS \
   -h $HOSTNAME \
   --cap-add=SYS_PTRACE \
   --security-opt seccomp=unconfined \

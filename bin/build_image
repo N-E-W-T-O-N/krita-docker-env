@@ -56,4 +56,5 @@ fi
 ${DOCKER_BINARY} build -t $IMAGE_NAME . ${DEPS_EXTRA_ARGS} \
     --build-arg BASE_IMAGE=$BASE_IMAGE \
     --build-arg APPIMAGE_UID=$(id -u) \
-    --build-arg APPIMAGE_GID=$(id -g)
+    --build-arg APPIMAGE_GID=$(id -g) \
+    --build-arg RENDER_GID=$(getent group render | cut -d: -f3)
