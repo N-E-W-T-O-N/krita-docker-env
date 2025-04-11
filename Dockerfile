@@ -4,6 +4,7 @@ MAINTAINER Dmitry Kazakov <dimula73@gmail.com>
 
 ARG APPIMAGE_UID=1000
 ARG APPIMAGE_GID=1000
+ARG RENDER_GID=110
 
 USER root
 
