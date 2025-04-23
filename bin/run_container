@@ -88,7 +88,7 @@ ${DOCKER_BINARY} run -P -t -d \
   --device /dev/dri \
   --env PULSE_SERVER=unix:/tmp/pulseaudio-docker.socket \
   --env PULSE_COOKIE=/tmp/pulseaudio-docker.cookie \
-  --volume /tmp/pulseaudio-docker.socket:/tmp/pulseaudio-docker.socket \
+  --volume $INTERNAL_PULSEAUDIO_SOCKET:/tmp/pulseaudio-docker.socket \
   --volume /tmp/pulseaudio.client.conf:/etc/pulse/client.conf \
   $NVIDIA_OPTS \
   $KVM_OPTS \
