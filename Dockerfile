@@ -12,7 +12,7 @@ RUN apt-get update && \
     apt-get -y install curl && \
     apt-get -y install emacs-nox && \
     apt-get -y install gitk git-gui && \
-    apt-get -y install cmake-curses-gui gdb valgrind sysvinit-utils && \
+    apt-get -y install cmake-curses-gui=3.31.6-0kitware1ubuntu22.04.1 gdb valgrind sysvinit-utils && \
     apt-get -y install nomacs && \
     apt-get -y install mesa-utils && \
     apt-get -y install cpu-checker # for kvm-ok command
