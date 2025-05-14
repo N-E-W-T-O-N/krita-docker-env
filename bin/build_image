@@ -29,7 +29,7 @@ while true; do
         DEPS_EXTRA_ARGS="--target=base_image"
         ;;
     -a | --android)
-        BASE_IMAGE="krita-android-builder-sdk34"
+        BASE_IMAGE="krita-android-builder-sdk34-2204"
         ;;
     -h | --help)
         echo -e $usage >&2
