@@ -10,7 +10,11 @@ function tryCreatePulseaudioSocket {
         INTERNAL_PULSEAUDIO_SOCKET=/tmp/pulseaudio-docker.socket
     fi
 
-    if [[ ! -e /tmp/pulseaudio.client.conf ]]; then
+    if [[ ! -S ${INTERNAL_PULSEAUDIO_SOCKET} ]]; then
+        INTERNAL_PULSEAUDIO_SOCKET=
+    fi
+
+    if [[ -n ${INTERNAL_PULSEAUDIO_SOCKET} && ! -e /tmp/pulseaudio.client.conf ]]; then
         cat <<EOF > /tmp/pulseaudio.client.conf
 default-server = unix:/tmp/pulseaudio-docker.socket
 # Prevent a server running in the container
@@ -21,5 +25,9 @@ enable-shm = false
 EOF
     fi
 
-    echo "### Using pulseaudio socket: $INTERNAL_PULSEAUDIO_SOCKET"
+    if [[ -n ${INTERNAL_PULSEAUDIO_SOCKET} ]]; then
+        echo "### Using pulseaudio socket: $INTERNAL_PULSEAUDIO_SOCKET"
+    else
+        echo "### Pulseaudio socket was not found!"
+    fi
 }

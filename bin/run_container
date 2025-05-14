@@ -72,24 +72,34 @@ tryCreatePulseaudioSocket
 tryCreateXAuthCookieFile
 runUserInitializationHooks
 
+PULSE_OPTS=
+if [[ -n ${INTERNAL_PULSEAUDIO_SOCKET} ]]; then
+    PULSE_OPTS="--env PULSE_SERVER=unix:/tmp/pulseaudio-docker.socket
+        --env PULSE_COOKIE=/tmp/pulseaudio-docker.cookie
+        --volume $INTERNAL_PULSEAUDIO_SOCKET:/tmp/pulseaudio-docker.socket
+        --volume /tmp/pulseaudio.client.conf:/etc/pulse/client.conf"
+fi
+
+X11_OPTS=
+if [[ -n $XAUTHORITY ]]; then
+    X11_OPTS="-v /tmp/.X11-unix/:/tmp/.X11-unix
+        -v /tmp/krita-docker-xauth:/tmp/krita-docker-xauth:ro
+        -e XAUTHORITY=/tmp/krita-docker-xauth"
+fi
+
 ${DOCKER_BINARY} run -P -t -d \
   $EXTRA_DOCKER_MOUNTS \
   -v $(pwd)/persistent/:/home/appimage/persistent/:rw \
-  -v /tmp/.X11-unix/:/tmp/.X11-unix \
-  -v /tmp/krita-docker-xauth:/tmp/krita-docker-xauth:ro \
   -v /etc/localtime:/etc/localtime:ro \
   -e DISPLAY \
-  -e XAUTHORITY=/tmp/krita-docker-xauth \
   $WAYLAND_OPTS \
   -h $HOSTNAME \
   --cap-add=SYS_PTRACE \
   --security-opt seccomp=unconfined \
   --security-opt label=type:container_runtime_t \
   --device /dev/dri \
-  --env PULSE_SERVER=unix:/tmp/pulseaudio-docker.socket \
-  --env PULSE_COOKIE=/tmp/pulseaudio-docker.cookie \
-  --volume $INTERNAL_PULSEAUDIO_SOCKET:/tmp/pulseaudio-docker.socket \
-  --volume /tmp/pulseaudio.client.conf:/etc/pulse/client.conf \
+  $X11_OPTS \
+  $PULSE_OPTS \
   $NVIDIA_OPTS \
   $KVM_OPTS \
   --name $CONTAINER_NAME \
