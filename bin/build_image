@@ -14,7 +14,7 @@ current directory name
 "
 
 DEPS_EXTRA_ARGS=
-BASE_IMAGE="krita-appimage-builder"
+BASE_IMAGE="krita-appimage-builder-2204"
 
 # Call getopt to validate the provided input. 
 options=$(getopt -o ash --long skip-deps,help,android -- "$@")
