@@ -30,6 +30,9 @@ RUN usermod -u ${APPIMAGE_UID} -g ${APPIMAGE_GID} -a -G render appimage
 
 RUN locale-gen en_US.UTF-8
 
+RUN mkdir /tmp/xdg-runtime && \
+    chown appimage:appimage /tmp/xdg-runtime
+
 RUN echo 'export LC_ALL=en_US.UTF-8' >> ${USRHOME}/.bashrc && \
     echo 'export LANG=en_US.UTF-8'  >> ${USRHOME}/.bashrc && \
     echo "export PS1='\u@\h:\w>'"  >> ${USRHOME}/.bashrc && \
