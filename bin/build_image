@@ -14,10 +14,10 @@ current directory name
 "
 
 DEPS_EXTRA_ARGS=
-BASE_IMAGE="krita-appimage-builder-2204"
+BASE_IMAGE="invent-registry.kde.org/sysadmin/ci-images/krita-appimage-builder-2204"
 
 # Call getopt to validate the provided input. 
-options=$(getopt -o ash --long skip-deps,help,android -- "$@")
+options=$(getopt -o ashi: --long skip-deps,help,android,image: -- "$@")
 [ $? -eq 0 ] || { 
     echo "Incorrect options provided"
     exit 1
@@ -29,7 +29,11 @@ while true; do
         DEPS_EXTRA_ARGS="--target=base_image"
         ;;
     -a | --android)
-        BASE_IMAGE="krita-android-builder-sdk34-2204"
+        BASE_IMAGE="invent-registry.kde.org/sysadmin/ci-images/krita-android-builder-sdk34-2204"
+        ;;
+    -i | --image)
+        shift;
+        BASE_IMAGE=$1
         ;;
     -h | --help)
         echo -e $usage >&2

@@ -1,5 +1,5 @@
-ARG BASE_IMAGE=krita-appimage-builder-2204
-FROM invent-registry.kde.org/sysadmin/ci-images/${BASE_IMAGE} as base_image
+ARG BASE_IMAGE=invent-registry.kde.org/sysadmin/ci-images/krita-appimage-builder-2204
+FROM ${BASE_IMAGE} as base_image
 MAINTAINER Dmitry Kazakov <dimula73@gmail.com>
 
 ARG APPIMAGE_UID=1000
