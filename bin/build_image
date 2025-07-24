@@ -14,7 +14,7 @@ current directory name
 "
 
 DEPS_EXTRA_ARGS=
-BASE_IMAGE="invent-registry.kde.org/sysadmin/ci-images/krita-appimage-builder-2204"
+BASE_IMAGE="invent-registry.kde.org/sysadmin/ci-images/krita-appimage-2204"
 
 # Call getopt to validate the provided input. 
 options=$(getopt -o ashi: --long skip-deps,help,android,image: -- "$@")
