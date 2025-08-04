@@ -29,7 +29,7 @@ while true; do
         DEPS_EXTRA_ARGS="--target=base_image"
         ;;
     -a | --android)
-        BASE_IMAGE="invent-registry.kde.org/sysadmin/ci-images/krita-android-builder-sdk34-2204"
+        BASE_IMAGE="invent-registry.kde.org/sysadmin/ci-images/krita-android-sdk34-2204"
         ;;
     -i | --image)
         shift;
