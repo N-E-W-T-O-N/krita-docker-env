@@ -5,16 +5,32 @@ usage=\
 Build an image for the container\n
 \n
 where:\n
-    -h,      --help              show this help text\n
+    -h,     --help               show this help text\n
     -s,     --skip-deps          skip unpacking deps\n
     -a,     --android            build an android image\n
+    -i,     --image              the name or URL of the base image to use\n
 \n
 If no IMAGE_NAME is given, it is deduced from the\n 
 current directory name    
 "
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source ${DIR}/find_default_container_file.inc
+
+source $DIR/base-image.conf
+
+if [[ -z "${BASE_APPIMAGE_IMAGE}" ]]; then
+    echo "ERROR: base-image.conf doesn't have a name of appimage docker image"
+    exit 1
+fi
+
+if [[ -z "${BASE_ANDROID_IMAGE}" ]]; then
+    echo "ERROR: base-image.conf doesn't have a name of android docker image"
+    exit 1
+fi
+
 DEPS_EXTRA_ARGS=
-BASE_IMAGE="invent-registry.kde.org/sysadmin/ci-images/krita-appimage-2204"
+BASE_IMAGE="${BASE_APPIMAGE_IMAGE}"
 
 # Call getopt to validate the provided input. 
 options=$(getopt -o ashi: --long skip-deps,help,android,image: -- "$@")
@@ -29,7 +45,7 @@ while true; do
         DEPS_EXTRA_ARGS="--target=base_image"
         ;;
     -a | --android)
-        BASE_IMAGE="invent-registry.kde.org/sysadmin/ci-images/krita-android-sdk34-2204"
+        BASE_IMAGE="${BASE_ANDROID_IMAGE}"
         ;;
     -i | --image)
         shift;
@@ -46,9 +62,6 @@ while true; do
     esac
     shift
 done
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source ${DIR}/find_default_container_file.inc
 
 IMAGE_NAME=${@:$OPTIND:1}
 
