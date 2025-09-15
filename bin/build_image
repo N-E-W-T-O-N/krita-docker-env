@@ -29,7 +29,7 @@ if [[ -z "${BASE_ANDROID_IMAGE}" ]]; then
     exit 1
 fi
 
-DEPS_EXTRA_ARGS=
+DEPS_EXTRA_ARGS="--platform=linux/arm64 --progress=plain --memory=6g"
 BASE_IMAGE="${BASE_APPIMAGE_IMAGE}"
 
 # Call getopt to validate the provided input. 

@@ -5,7 +5,8 @@ set -e
 
 # We need the appimage builder
 cd ~/
-wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O linuxdeployqt
+wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-aarch64.AppImage" -O linuxdeployqt
+#wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" -O linuxdeployqt
 chmod a+x linuxdeployqt
 ./linuxdeployqt --appimage-extract
 rsync -rav ~/squashfs-root/usr/ ~/tools/
