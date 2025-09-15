@@ -1,6 +1,9 @@
 #!/bin/bash
 
 function tryCreatePulseaudioSocket {
+
+    echo "tryCreatePulseaudioSocket"    
+
     if [[ -e /run/user/$UID/pulse/native ]]; then
         echo "### Trying to connect to existing socket pulseaudio socket..."
         INTERNAL_PULSEAUDIO_SOCKET=/run/user/$UID/pulse/native
@@ -14,6 +17,9 @@ function tryCreatePulseaudioSocket {
         INTERNAL_PULSEAUDIO_SOCKET=
     fi
 
+    # Add this to your build_image or run_container script
+    echo "### Ensuring required files exist..."
+    
     if [[ -n ${INTERNAL_PULSEAUDIO_SOCKET} && ! -e /tmp/pulseaudio.client.conf ]]; then
         cat <<EOF > /tmp/pulseaudio.client.conf
 default-server = unix:/tmp/pulseaudio-docker.socket

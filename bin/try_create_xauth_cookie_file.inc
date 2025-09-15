@@ -6,5 +6,6 @@ function tryCreateXAuthCookieFile {
 
         echo "### Forwarding XAUTH cookie..."
         cat $XAUTHORITY >/tmp/krita-docker-xauth
+        echo "Done Forwarding XAUTH cookie..."
     fi
 }

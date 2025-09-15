@@ -73,23 +73,34 @@ tryCreateXAuthCookieFile
 runUserInitializationHooks
 
 PULSE_OPTS=
+
 if [[ -n ${INTERNAL_PULSEAUDIO_SOCKET} ]]; then
     PULSE_OPTS="--env PULSE_SERVER=unix:/tmp/pulseaudio-docker.socket
         --env PULSE_COOKIE=/tmp/pulseaudio-docker.cookie
         --volume $INTERNAL_PULSEAUDIO_SOCKET:/tmp/pulseaudio-docker.socket
         --volume /tmp/pulseaudio.client.conf:/etc/pulse/client.conf"
+    echo $PULSE_OPTS
 fi
+
+## Modify run_container to skip PULSE_OPTS for ARM64
+#if [[ "$(uname -m)" = "aarch64" ]]; then
+#    # Running ARM64 container on different architecture - skip audio
+#    PULSE_OPTS=""
+#fi
 
 X11_OPTS=
 if [[ -n $XAUTHORITY ]]; then
     X11_OPTS="-v /tmp/.X11-unix/:/tmp/.X11-unix
         -v /tmp/krita-docker-xauth:/tmp/krita-docker-xauth:ro
         -e XAUTHORITY=/tmp/krita-docker-xauth"
+    echo "X11_OPTS : $X11_OPTS"
 fi
 
-${DOCKER_BINARY} run -P -t -d \
+${DOCKER_BINARY} run -P -t -d --platform=linux/arm64 \
   $EXTRA_DOCKER_MOUNTS \
   -v $(pwd)/persistent/:/home/appimage/persistent/:rw \
+  -v $(pwd)/default-home/run_cmake.sh:/home/appimage/bin/run_cmake.sh:rw \
+  -v $(pwd)/default-home/build_krita_appimage.sh:/home/appimage/bin/build_krita_appimage.sh:rw  \
   -v /etc/localtime:/etc/localtime:ro \
   -e DISPLAY \
   $WAYLAND_OPTS \
@@ -98,6 +109,9 @@ ${DOCKER_BINARY} run -P -t -d \
   --security-opt seccomp=unconfined \
   --security-opt label=type:container_runtime_t \
   --device /dev/dri \
+  --privileged \
+  --user root \
+  --cpus 3 -m "6gb" \
   $X11_OPTS \
   $PULSE_OPTS \
   $NVIDIA_OPTS \
