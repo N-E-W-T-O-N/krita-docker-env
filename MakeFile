@@ -1,0 +1,21 @@
+IMAGE_NAME := krita-deps
+BASE_IMAGE := krita-appimage-2204
+
+build: build-image
+	docker run --rm --platform="linux/arm64" \
+	-v ${PWD}/blender-git:/blender-git \
+    -v ${PWD}/compile.sh:/compile.sh \
+	${IMAGE_NAME}
+
+build-compose:
+	docker compose build
+	docker compose up
+
+build-image:
+    docker buildx build --platform linux/arm64 --progress=plain --load -t ${IMAGE_NAME} -t ${IMAGE_NAME}:arm64   .
+
+build-base:
+    docker buildx build --platform linux/arm64 --progress=plain --load -t ${BASE_IMAGE} -t ${BASE_IMAGE}:arm64   .
+
+
+
