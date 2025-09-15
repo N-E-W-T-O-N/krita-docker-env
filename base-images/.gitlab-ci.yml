@@ -1,0 +1,360 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
+stages:
+  - Infrastructure
+  - Android
+  - Linux
+  - Binaries
+  - Other
+  - Krita
+
+## Templates
+
+.docker-build:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  needs: []
+  image: storage.kde.org/vm-images/image-builder
+  tags:
+    - VM
+    - amd64
+  variables:
+    IMAGE_TAG: latest
+  script:
+    - podman login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - podman build --pull --no-cache --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}/
+    - podman push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${IMAGE_NAME}:${IMAGE_TAG}
+
+.unix-vm-build:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  needs: []
+  tags:
+    - VMBuilder
+    - amd64
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 88m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+    SUDO: sudo
+    ARCH_SUFFIX: ''
+  script:
+    - source $CI_PROJECT_DIR/vm-runner/vm-builder-setup
+    - wget -q "$BASE_IMAGE" -O base-$IMAGE_NAME.qcow2
+    - VM_NAME="$(vm_name)"
+    - vm-runner run --cpu 8 --ram 8G --disk 30G --image ./base-$IMAGE_NAME.qcow2 --ssh-keys $HOME/.ssh/id_ed25519.pub --cloudinit-resources "$CI_PROJECT_DIR/$IMAGE_NAME/" $VM_NAME
+    - check_ssh_available vmadmin $VM_NAME
+    - ssh vmadmin $VM_NAME $SUDO /var/lib/ci-files/build.sh
+    - ssh vmadmin $VM_NAME $SUDO /var/lib/ci-files/sysprep.sh || true
+    - sleep 30s
+    - vm-image-upload --volume "$VM_NAME-disk1" --remote-path "storage.kde.org/vm-images/$IMAGE_NAME$ARCH_SUFFIX" --sparsify
+  after_script:
+    - source $CI_PROJECT_DIR/vm-runner/vm-builder-setup
+    - vm-runner remove "$(vm_name)"
+
+.unix-arm-vm-build:
+  extends: .unix-vm-build
+  variables:
+    ARCH_SUFFIX: '-arm64'
+  tags:
+    - VMBuilder
+    - arm64
+
+## Windows builds
+
+windows-msvc2022-qt69:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  needs: []
+  tags:
+    - VMBuilder
+    - amd64
+  stage: Other
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 88m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+    IMAGE_NAME: windows-msvc2022-qt69
+    BASE_IMAGE: https://storage.kde.org/vm-images/windows11-base.qcow2
+  script:
+    - source $CI_PROJECT_DIR/vm-runner/vm-builder-setup
+    - VM_NAME="$(vm_name)"
+    - wget -q "$BASE_IMAGE" -O base-$IMAGE_NAME.qcow2
+    - vm-runner run --cpu 8 --ram 16G --disk 150G --image ./base-$IMAGE_NAME.qcow2 --ssh-keys $HOME/.ssh/id_ed25519.pub --cloudinit-resources "$CI_PROJECT_DIR/$IMAGE_NAME/" $VM_NAME
+    - check_ssh_available vmadmin $VM_NAME
+    - ssh vmadmin $VM_NAME cmd < $IMAGE_NAME/build-stage1.bat
+    - ssh vmadmin $VM_NAME powershell < $IMAGE_NAME/build-stage2.ps1
+    - ssh vmadmin $VM_NAME pwsh < $IMAGE_NAME/build-stage3.ps1
+    - ssh user $VM_NAME mkdir "C:\Craft"
+    - scp -o StrictHostKeyChecking=off -o UserKnownHostsFile=/dev/null $IMAGE_NAME/CI-* user@$ip:C:/Craft/
+    - ssh user $VM_NAME pwsh < $IMAGE_NAME/build-stage4.ps1
+    - ssh vmadmin $VM_NAME pwsh < $IMAGE_NAME/sysprep.ps1
+    - sleep 30s
+    - vm-image-upload --volume "$VM_NAME-disk1" --remote-path "storage.kde.org/vm-images/$IMAGE_NAME" --sparsify
+  after_script:
+    - source $CI_PROJECT_DIR/vm-runner/vm-builder-setup
+    - vm-runner remove "$(vm_name)"
+
+krita-windows-clang18:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  needs: []
+  tags:
+    - VMBuilder
+    - amd64
+  stage: Krita
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 88m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+    IMAGE_NAME: krita-windows-clang18
+    BASE_IMAGE: https://storage.kde.org/vm-images/windows11-base.qcow2
+  script:
+    - source $CI_PROJECT_DIR/vm-runner/vm-builder-setup
+    - VM_NAME="$(vm_name)"
+    - wget -q "$BASE_IMAGE" -O base-$IMAGE_NAME.qcow2
+    - vm-runner run --cpu 8 --ram 16G --disk 150G --image ./base-$IMAGE_NAME.qcow2 --ssh-keys $HOME/.ssh/id_ed25519.pub --cloudinit-resources "$CI_PROJECT_DIR/$IMAGE_NAME/" $VM_NAME
+    - check_ssh_available vmadmin $VM_NAME
+    - ssh vmadmin $VM_NAME cmd < $IMAGE_NAME/build-stage1.bat
+    - ssh vmadmin $VM_NAME powershell < $IMAGE_NAME/build-stage2.ps1
+    - ssh vmadmin $VM_NAME pwsh < $IMAGE_NAME/build-stage3.ps1
+    - ssh vmadmin $VM_NAME pwsh < $IMAGE_NAME/sysprep.ps1
+    - sleep 30s
+    - vm-image-upload --volume "$VM_NAME-disk1" --remote-path "storage.kde.org/vm-images/$IMAGE_NAME" --sparsify
+  after_script:
+    - source $CI_PROJECT_DIR/vm-runner/vm-builder-setup
+    - vm-runner remove "$(vm_name)"
+
+krita-windows-clang18-py313:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  needs: []
+  tags:
+    - VMBuilder
+    - amd64
+  stage: Krita
+  variables:
+    RUNNER_SCRIPT_TIMEOUT: 88m
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 2m
+    IMAGE_NAME: krita-windows-clang18-py313
+    BASE_IMAGE: https://storage.kde.org/vm-images/windows11-base.qcow2
+  script:
+    - source $CI_PROJECT_DIR/vm-runner/vm-builder-setup
+    - VM_NAME="$(vm_name)"
+    - wget -q "$BASE_IMAGE" -O base-$IMAGE_NAME.qcow2
+    - vm-runner run --cpu 8 --ram 16G --disk 150G --image ./base-$IMAGE_NAME.qcow2 --ssh-keys $HOME/.ssh/id_ed25519.pub --cloudinit-resources "$CI_PROJECT_DIR/$IMAGE_NAME/" $VM_NAME
+    - check_ssh_available vmadmin $VM_NAME
+    - ssh vmadmin $VM_NAME cmd < $IMAGE_NAME/build-stage1.bat
+    - ssh vmadmin $VM_NAME powershell < $IMAGE_NAME/build-stage2.ps1
+    - ssh vmadmin $VM_NAME pwsh < $IMAGE_NAME/build-stage3.ps1
+    - ssh vmadmin $VM_NAME pwsh < $IMAGE_NAME/sysprep.ps1
+    - sleep 30s
+    - vm-image-upload --volume "$VM_NAME-disk1" --remote-path "storage.kde.org/vm-images/$IMAGE_NAME" --sparsify
+  after_script:
+    - source $CI_PROJECT_DIR/vm-runner/vm-builder-setup
+    - vm-runner remove "$(vm_name)"
+
+## Image Builder VM
+
+image-builder:
+  extends: .unix-vm-build
+  stage: Infrastructure
+  variables:
+    IMAGE_NAME: image-builder
+    BASE_IMAGE: https://repo.almalinux.org/almalinux/10.0/cloud/x86_64/images/AlmaLinux-10-GenericCloud-latest.x86_64.qcow2
+
+## Unix VM builds (alphabetical order)
+
+alpine-qt68:
+  extends: .unix-vm-build
+  stage: Linux
+  variables:
+    SUDO: doas
+    IMAGE_NAME: alpine-qt68
+    BASE_IMAGE: https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/nocloud_alpine-3.22.0-x86_64-bios-cloudinit-r0.qcow2
+
+android-qt69:
+  extends: .unix-vm-build
+  stage: Android
+  variables:
+    IMAGE_NAME: android-qt69
+    BASE_IMAGE: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+
+android-qt69-ci:
+  extends: .unix-vm-build
+  stage: Android
+  variables:
+    IMAGE_NAME: android-qt69-ci
+    BASE_IMAGE: https://storage.kde.org/vm-images/android-qt69.qcow2
+
+craft-appimage:
+  extends: .unix-vm-build
+  stage: Binaries
+  variables:
+    IMAGE_NAME: craft-appimage
+    BASE_IMAGE: https://repo.almalinux.org/almalinux/8.10/cloud/x86_64/images/AlmaLinux-8-GenericCloud-latest.x86_64.qcow2
+
+craft-appimage-docker:
+  extends: .docker-build
+  stage: Binaries
+  variables:
+    IMAGE_NAME: craft-appimage
+
+freebsd14-qt69:
+  extends: .unix-vm-build
+  stage: Other
+  variables:
+    IMAGE_NAME: freebsd14-qt69
+    BASE_IMAGE: https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/freebsd/14.2/2024-12-08/zfs/freebsd-14.2-zfs-2024-12-08.qcow2
+
+kde-linux-builder:
+  extends: .unix-vm-build
+  stage: Other
+  variables:
+    IMAGE_NAME: kde-linux-builder
+    BASE_IMAGE: https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2
+
+krita-appimage-2204:
+  extends: .unix-vm-build
+  stage: Krita
+  variables:
+    IMAGE_NAME: krita-appimage-2204
+    BASE_IMAGE: https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+
+krita-android-sdk35-2204:
+  extends: .unix-vm-build
+  stage: Krita
+  variables:
+    IMAGE_NAME: krita-android-sdk35-2204
+    BASE_IMAGE: https://storage.kde.org/vm-images/krita-appimage-2204.qcow2
+
+neon-builder-noble:
+  extends: .unix-vm-build
+  stage: Other
+  variables:
+    IMAGE_NAME: neon-builder-noble
+    BASE_IMAGE: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+
+neon-builder-noble-arm64:
+  extends: .unix-arm-vm-build
+  stage: Other
+  variables:
+    IMAGE_NAME: neon-builder-noble
+    BASE_IMAGE: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64.img
+
+snap-builder:
+  extends: .unix-vm-build
+  stage: Binaries
+  variables:
+    IMAGE_NAME: snap-builder
+    BASE_IMAGE: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+
+snap-builder-arm64:
+  extends: .unix-arm-vm-build
+  stage: Binaries
+  variables:
+    IMAGE_NAME: snap-builder
+    BASE_IMAGE: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64.img
+
+staticweb:
+  extends: .unix-vm-build
+  stage: Infrastructure
+  variables:
+    IMAGE_NAME: staticweb
+    BASE_IMAGE: https://cloud-images.ubuntu.com/plucky/current/plucky-server-cloudimg-amd64.img
+
+suse-qt515:
+  extends: .unix-vm-build
+  stage: Linux
+  variables:
+    IMAGE_NAME: suse-qt515
+    BASE_IMAGE: https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-Minimal-VM.x86_64-Cloud.qcow2
+
+suse-qt69:
+  extends: .unix-vm-build
+  stage: Linux
+  variables:
+    IMAGE_NAME: suse-qt69
+    BASE_IMAGE: https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-Minimal-VM.x86_64-Cloud.qcow2
+
+suse-qt68-static:
+  extends: .unix-vm-build
+  stage: Linux
+  variables:
+    IMAGE_NAME: suse-qt68-static
+    BASE_IMAGE: https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-Minimal-VM.x86_64-Cloud.qcow2
+
+suse-qt610:
+  extends: .unix-vm-build
+  stage: Linux
+  variables:
+    IMAGE_NAME: suse-qt610
+    BASE_IMAGE: https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-Minimal-VM.x86_64-Cloud.qcow2
+
+flatpak-builder:
+  extends: .unix-vm-build
+  stage: Binaries
+  variables:
+    IMAGE_NAME: flatpak-builder
+    BASE_IMAGE: https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-42-1.1.x86_64.qcow2
+
+flatpak-builder-arm64:
+  extends: .unix-arm-vm-build
+  stage: Binaries
+  variables:
+    IMAGE_NAME: flatpak-builder
+    BASE_IMAGE: https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-42-1.1.aarch64.qcow2
+
+yocto-builder-noble:
+  extends: .unix-vm-build
+  stage: Other
+  variables:
+    IMAGE_NAME: yocto-builder-noble
+    BASE_IMAGE: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+
+## Docker image builds
+
+android-qt69-docker:
+  extends: .docker-build
+  stage: Android
+  variables:
+    IMAGE_NAME: android-qt69
+
+android-qt69-ci-docker:
+  extends: .docker-build
+  stage: Android
+  variables:
+    IMAGE_NAME: android-qt69-ci
+
+kecolab-analysis:
+  extends: .docker-build
+  stage: Infrastructure
+  variables:
+    IMAGE_NAME: kecolab-analysis
+
+krita-appimage-2204-docker:
+  extends: .docker-build
+  stage: Krita
+  variables:
+    IMAGE_NAME: krita-appimage-2204
+
+krita-android-sdk35-2204-docker:
+  extends: .docker-build
+  stage: Krita
+  variables:
+    IMAGE_NAME: krita-android-sdk35-2204
+
+staticweb-docker:
+  extends: .docker-build
+  stage: Infrastructure
+  variables:
+    IMAGE_NAME: staticweb
+
+yocto-builder:
+  extends: .docker-build
+  stage: Other
+  variables:
+    IMAGE_NAME: yocto-builder

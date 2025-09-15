@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if groups | grep docker > /dev/null 2>&1; then
+    DOCKER_BINARY=docker
+else
+    DOCKER_BINARY="sudo docker"
+fi
+
+
+${DOCKER_BINARY} build --platform=linux/arm64  --progress=plain --load -t krita-appimage-2204 -t krita-appimage-2204:arm64  .
+
