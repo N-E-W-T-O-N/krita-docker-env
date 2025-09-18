@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 LABEL Description="KDE Appimage Base"
 LABEL org.opencontainers.image.authors="KDE Sysadmin <sysadmin@kde.org>,Dmitry Kazakov <dimula73@gmail.com>"
@@ -13,10 +13,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Setup a user account for everything else to be done under
 # Also needs to be done beforehand to ensure that /builds and /cache can be assigned to the user in the build script
-RUN useradd -d /home/appimage/ -u 1000 --user-group --create-home -G video appimage
-
+#RUN useradd -d /home/appimage/ -u 1000 --user-group --create-home -G video appimage
+RUN useradd -d /home/appimage/ --user-group --create-home -G video appimage
 RUN apt-get update && \
-    apt-get install -y apt-transport-https ca-certificates gnupg software-properties-common wget  locales && \
+    apt-get install -y apt-transport-https ca-certificates gnupg software-properties-common wget locales && \
 # Get locales in order
     locale-gen en_US en_US.UTF-8 en_NZ.UTF-8
 

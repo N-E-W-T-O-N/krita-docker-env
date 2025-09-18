@@ -7,5 +7,5 @@ else
 fi
 
 
-${DOCKER_BINARY} build --platform=linux/arm64  --progress=plain --load -t krita-appimage-2204 -t krita-appimage-2204:arm64  .
+${DOCKER_BINARY} buildx build --platform=linux/arm64  --progress=plain --load -t krita-appimage-2404 -t krita-appimage-2404:arm64 base-images/.
 
