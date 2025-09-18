@@ -1,21 +1,26 @@
 IMAGE_NAME := krita-deps
-BASE_IMAGE := krita-appimage-2204
+BASE_IMAGE := krita-appimage-2404
+
+# Add all non-file targets to .PHONY
+.PHONY: build build-compose build-image build-base correct
 
 build: build-image
-	docker run --rm --platform="linux/arm64" \
-	-v ${PWD}/blender-git:/blender-git \
-    -v ${PWD}/compile.sh:/compile.sh \
-	${IMAGE_NAME}
+			docker run --rm --platform="linux/arm64" \
+			-v ${PWD}/blender-git:/blender-git \
+			-v ${PWD}/compile.sh:/compile.sh \
+			${IMAGE_NAME}
 
 build-compose:
-	docker compose build
-	docker compose up
+			docker compose build
+			docker compose up
 
 build-image:
-    docker buildx build --platform linux/arm64 --progress=plain --load -t ${IMAGE_NAME} -t ${IMAGE_NAME}:arm64   .
+			docker buildx build --platform linux/arm64 --progress=plain --load -t ${IMAGE_NAME} -t ${IMAGE_NAME}:arm64   .
 
 build-base:
-    docker buildx build --platform linux/arm64 --progress=plain --load -t ${BASE_IMAGE} -t ${BASE_IMAGE}:arm64   .
+			docker buildx build --platform linux/arm64 --progress=plain --load -t ${BASE_IMAGE} -t ${BASE_IMAGE}:arm64  base-images/.
 
-
-
+correct:
+			# Ensure these lines are indented with a Tab
+			docker run --rm --privileged tonistiigi/binfmt --install all 
+			docker run --rm --privileged multiarch/qemu-user-static --reset -p yes -c yes

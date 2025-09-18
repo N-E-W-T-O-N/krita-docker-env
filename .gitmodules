@@ -1,0 +1,3 @@
+[submodule "persistent/krita"]
+	path = persistent/krita
+	url = https://invent.kde.org/graphics/krita

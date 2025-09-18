@@ -1,4 +1,5 @@
-persistent
+persistent/deps
+persistent/*.tar.gz
 .container_name
 .spawn_clone.lock
 clones
