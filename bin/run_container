@@ -107,6 +107,7 @@ ${DOCKER_BINARY} run -P -t -d --platform=linux/arm64 \
   -v $(pwd)/persistent/:/home/appimage/persistent/:rw \
   -v $(pwd)/default-home/run_cmake.sh:/home/appimage/bin/run_cmake.sh:rw \
   -v $(pwd)/default-home/build_krita_appimage.sh:/home/appimage/bin/build_krita_appimage.sh:rw  \
+  -v $(pwd)/default-home/install_extra.sh:/home/appimage/bin/install_extra.sh:rw \
   -v /etc/localtime:/etc/localtime:ro \
   -e DISPLAY \
   $WAYLAND_OPTS \
@@ -116,6 +117,7 @@ ${DOCKER_BINARY} run -P -t -d --platform=linux/arm64 \
   --security-opt label=type:container_runtime_t \
   --device /dev/dri \
   --privileged \
+  --user root
   $X11_OPTS \
   $PULSE_OPTS \
   $NVIDIA_OPTS \
