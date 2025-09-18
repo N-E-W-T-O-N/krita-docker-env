@@ -65,13 +65,31 @@ done
 
 IMAGE_NAME=${@:$OPTIND:1}
 
+echo "## Building image with base image: ${BASE_IMAGE}"
 if [[ -z ${IMAGE_NAME} ]]; then
     IMAGE_NAME=$(basename $(realpath $DIR/..))
     echo Auto-select image name: ${IMAGE_NAME}
 fi
 
-${DOCKER_BINARY} build -t $IMAGE_NAME . ${DEPS_EXTRA_ARGS} \
-    --build-arg BASE_IMAGE=$BASE_IMAGE \
-    --build-arg APPIMAGE_UID=$(id -u) \
-    --build-arg APPIMAGE_GID=$(id -g) \
-    --build-arg RENDER_GID=$(getent group render | cut -d: -f3)
+# --- Get Host UIDs/GIDs ---
+# This ensures the container user matches your host user for file permissions
+HOST_UID=$(id -u)
+HOST_GID=$(id -g)
+# Provide a default for the render group if it doesn't exist on the host
+RENDER_GID=$(getent group render | cut -d: -f3 || echo 110)
+
+echo "## Using UID=${HOST_UID}, GID=${HOST_GID}, RENDER_GID=${RENDER_GID}"
+
+# --- Build the Image ---
+# This command has been corrected and simplified
+docker buildx build \
+    --progress=plain \
+    --load \
+    -t "${IMAGE_NAME}" \
+    --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
+    --build-arg "APPIMAGE_UID=${HOST_UID}" \
+    --build-arg "APPIMAGE_GID=${HOST_GID}" \
+    --build-arg "RENDER_GID=${RENDER_GID}" \
+    .
+
+echo "## Build complete! Image '${IMAGE_NAME}' is ready."

@@ -1,39 +1,49 @@
 #!/bin/bash
 
 function tryCreatePulseaudioSocket {
+    echo "tryCreatePulseaudioSocket"
 
-    echo "tryCreatePulseaudioSocket"    
-
-    if [[ -e /run/user/$UID/pulse/native ]]; then
-        echo "### Trying to connect to existing socket pulseaudio socket..."
+    INTERNAL_PULSEAUDIO_SOCKET=""
+    echo "### Trying to connect to existing socket pulseaudio socket..."
+    # 1. Check if PulseAudio is already running and socket exists
+    if [[ -S /run/user/$UID/pulse/native ]]; then
+        echo "### Found existing pulseaudio socket"
         INTERNAL_PULSEAUDIO_SOCKET=/run/user/$UID/pulse/native
-    elif [[ ! -e /tmp/pulseaudio-docker.socket ]]; then
-        echo "### Creating a pulseaudio socket..."
-        pactl load-module module-native-protocol-unix socket=/tmp/pulseaudio-docker.socket
-        INTERNAL_PULSEAUDIO_SOCKET=/tmp/pulseaudio-docker.socket
+    else
+        # 2. Try to start PulseAudio daemon if installed
+        if command -v pulseaudio >/dev/null 2>&1; then
+            echo "### Starting pulseaudio daemon..."
+            pulseaudio --start --exit-idle-time=-1 --daemonize
+            sleep 1
+            if [[ -S /run/user/$UID/pulse/native ]]; then
+                echo "### Pulseaudio socket created"
+                INTERNAL_PULSEAUDIO_SOCKET=/run/user/$UID/pulse/native
+            fi
+        fi
     fi
 
-    if [[ ! -S ${INTERNAL_PULSEAUDIO_SOCKET} ]]; then
-        INTERNAL_PULSEAUDIO_SOCKET=
-    fi
-
-    # Add this to your build_image or run_container script
-    echo "### Ensuring required files exist..."
-    
-    if [[ -n ${INTERNAL_PULSEAUDIO_SOCKET} && ! -e /tmp/pulseaudio.client.conf ]]; then
+    # 3. If still no socket, fall back to dummy config
+    if [[ -z "$INTERNAL_PULSEAUDIO_SOCKET" ]]; then
+        echo "### Pulseaudio socket was not found, falling back to dummy (no-audio)"
+        INTERNAL_PULSEAUDIO_SOCKET=""
         cat <<EOF > /tmp/pulseaudio.client.conf
-default-server = unix:/tmp/pulseaudio-docker.socket
-# Prevent a server running in the container
 autospawn = no
 daemon-binary = /bin/true
-# Prevent the use of shared memory
+enable-shm = false
+EOF
+    else
+        # Write client.conf pointing to real socket
+        cat <<EOF > /tmp/pulseaudio.client.conf
+default-server = unix:$INTERNAL_PULSEAUDIO_SOCKET
+autospawn = no
+daemon-binary = /bin/true
 enable-shm = false
 EOF
     fi
 
-    if [[ -n ${INTERNAL_PULSEAUDIO_SOCKET} ]]; then
+    if [[ -n "$INTERNAL_PULSEAUDIO_SOCKET" ]]; then
         echo "### Using pulseaudio socket: $INTERNAL_PULSEAUDIO_SOCKET"
     else
-        echo "### Pulseaudio socket was not found!"
+        echo "### Running with no audio support"
     fi
 }

@@ -5,9 +5,9 @@ function runUserInitializationHooks {
     local HOOKSDIR=$(realpath "$DIR/../user-hooks.d")
 
     if [[ -d $HOOKSDIR ]]; then
-        for file in `find $HOOKSDIR -executable -type f | sort`; do
-            echo "Running user hook: $file"
-            $file
+        for file in $(find "$HOOKSDIR" -type f -name "*.sh" -executable | sort); do
+           echo "Running user hook: $file"
+            "$file"
         done
     fi
 

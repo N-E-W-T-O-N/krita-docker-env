@@ -45,7 +45,7 @@ cp -r /path/to/sources/krita ./persistent/krita
 ## Build the docker image and run the container
 
 ```bash
-./bin/build_image krita-deps
+./bin/build_image -i krita-appimage-2404 krita-deps
 ./bin/run_container krita-deps krita-auto-1
 ```
 

@@ -96,6 +96,12 @@ if [[ -n $XAUTHORITY ]]; then
     echo "X11_OPTS : $X11_OPTS"
 fi
 
+# Make the script executable
+chmod +x $(pwd)/default-home/run_cmake.sh
+chmod +x $(pwd)/default-home/build_krita_appimage.sh
+chmod +x $(pwd)/default-home/install_extra.sh
+
+
 ${DOCKER_BINARY} run -P -t -d --platform=linux/arm64 \
   $EXTRA_DOCKER_MOUNTS \
   -v $(pwd)/persistent/:/home/appimage/persistent/:rw \
@@ -110,8 +116,6 @@ ${DOCKER_BINARY} run -P -t -d --platform=linux/arm64 \
   --security-opt label=type:container_runtime_t \
   --device /dev/dri \
   --privileged \
-  --user root \
-  --cpus 3 -m "6gb" \
   $X11_OPTS \
   $PULSE_OPTS \
   $NVIDIA_OPTS \

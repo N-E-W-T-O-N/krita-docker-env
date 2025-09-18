@@ -82,9 +82,29 @@ if [ ! -d $WORK_DIR/_install ]; then
                 git pull
             )
         fi
-        python3 -m venv PythonEnv --upgrade-deps
-        . PythonEnv/bin/activate
-        python -m pip install -r krita-deps-management/requirements.txt
+
+        ## workaround
+        # install uv (if not preinstalled)
+        pip install uv
+
+        # create an isolated environment (no venv, no conda)
+        uv venv PythonEnv
+
+        # activate
+        source PythonEnv/bin/activate
+
+        # install deps
+        uv pip install -r krita-deps-management/requirements.txt
+
+        # run your setup
         python krita-deps-management/tools/setup-env.py --full-krita-env -v PythonEnv $TARGET_ANDROID_ABI_ARG $BRANCH_ARG
+
+        #python3 -m venv PythonEnv --upgrade-deps
+        #. PythonEnv/bin/activate
+        #pip install --upgrade pip
+        #python -m pip install -r krita-deps-management/requirements.txt
+        #python krita-deps-management/tools/setup-env.py --full-krita-env -v $(which python) $TARGET_ANDROID_ABI_ARG $BRANCH_ARG
+
+        #python krita-deps-management/tools/setup-env.py --full-krita-env -v PythonEnv $TARGET_ANDROID_ABI_ARG $BRANCH_ARG
     )
 fi
