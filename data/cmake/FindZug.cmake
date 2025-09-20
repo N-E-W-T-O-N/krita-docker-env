@@ -3,9 +3,7 @@ include(FetchContent)
 set(zug_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(zug_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(zug_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(zug_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(zug_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(zug_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+
 if(NOT Zug_FOUND)
   message(STATUS "Fetching Zug library via FetchContent")
   FetchContent_Declare(
